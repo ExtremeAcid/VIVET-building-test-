@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIVET — By Kai Cenat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'VIVET Original';
+            src:
+                url('vivet-original.woff2') format('woff2'),
+                url('vivet-original.woff') format('woff'),
+                url('vivet-original.ttf') format('truetype'),
+                url('vivet-original.otf') format('opentype');
+            font-display: swap;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+        :root { --black: #0a0a0a; --white: #f5f5f5; --gray: #888; --display-font: 'VIVET Original', 'Permanent Marker', cursive; }
+        body { font-family: 'Inter', sans-serif; background: var(--black); color: var(--white); overflow-x: hidden; min-width: 320px; }
+        body.nav-open { overflow: hidden; }
+        button, input { font: inherit; }
+        button, a { -webkit-tap-highlight-color: transparent; }
+
+        /* Login Screen */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; min-height: 100dvh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; transition: opacity 1s ease, transform 1s ease; overflow: hidden; padding: 2rem; isolation: isolate;
+            background:
+                radial-gradient(circle at 18% 20%, rgba(255,255,255,0.12), transparent 28%),
+                radial-gradient(circle at 82% 78%, rgba(255,255,255,0.08), transparent 26%),
+                linear-gradient(145deg, #050505 0%, #121212 48%, #050505 100%);
+        }
+        #login-screen.hidden { opacity: 0; pointer-events: none; transform: scale(1.05); }
+
+        /* Video Background */
+        .login-video-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; z-index: -3;
+            filter: grayscale(100%) contrast(1.1) brightness(0.9);
+            display: block;
+        }
+        .login-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background:
+                radial-gradient(circle at 22% 18%, rgba(255,255,255,0.18) 0%, transparent 24%),
+                radial-gradient(circle at 76% 68%, rgba(255,255,255,0.1) 0%, transparent 26%),
+                linear-gradient(135deg, rgba(0,0,0,0.35), rgba(0,0,0,0.88));
+            z-index: -2;
+        }
+        .login-noise {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.04; z-index: -1; pointer-events: none;
+        }
+
+        .login-marquee {
+            position: absolute; top: 8%; left: 0; width: 100%; overflow: hidden; transform: rotate(-3deg);
+            font-family: var(--display-font); font-size: clamp(4rem, 13vw, 11rem); white-space: nowrap;
+            color: rgba(255,255,255,0.08); z-index: 0; pointer-events: none;
+        }
+        .login-marquee span { display: inline-block; padding-left: 100%; animation: marquee 22s linear infinite; }
+        .login-aura {
+            position: absolute; width: min(820px, 92vw); aspect-ratio: 1; border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 50%; z-index: 0; pointer-events: none; animation: slowSpin 28s linear infinite;
+        }
+        .login-aura::before, .login-aura::after {
+            content: ''; position: absolute; inset: 12%; border: 1px solid rgba(255,255,255,0.07); border-radius: 50%;
+        }
+        .login-aura::after { inset: 27%; border-style: dashed; opacity: 0.75; }
+        .login-orbit {
+            position: absolute; width: min(560px, 78vw); aspect-ratio: 1; border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 50%; z-index: 0; pointer-events: none; animation: slowSpin 18s linear infinite reverse;
+        }
+        .login-orbit span {
+            position: absolute; width: 42px; height: 1px; background: rgba(255,255,255,0.55);
+        }
+        .login-orbit span:nth-child(1) { top: -1px; left: 50%; transform: translateX(-50%); }
+        .login-orbit span:nth-child(2) { right: -21px; top: 50%; transform: rotate(90deg); }
+        .login-orbit span:nth-child(3) { bottom: -1px; left: 50%; transform: translateX(-50%); }
+        .login-orbit span:nth-child(4) { left: -21px; top: 50%; transform: rotate(90deg); }
+
+        .logo-container { text-align: center; margin-bottom: 2rem; animation: float 6s ease-in-out infinite; z-index: 2; }
+        .logo {
+            font-family: var(--display-font); font-size: 6rem; letter-spacing: 0.1em; color: var(--white);
+            text-shadow: 0 0 30px rgba(255,255,255,0.4), 4px 4px 0px rgba(255,255,255,0.1);
+            position: relative; display: inline-block;
+        }
+        .logo::before {
+            content: 'VIVET'; position: absolute; left: -0.08em; top: 0.08em; color: transparent;
+            -webkit-text-stroke: 1px rgba(255,255,255,0.18); z-index: -1; animation: logoGhost 3.5s ease-in-out infinite;
+        }
+        .logo::after { content: '®'; font-size: 1.5rem; position: absolute; top: 0; right: -2rem; font-family: 'Inter', sans-serif; font-weight: 300; }
+        .tagline { font-size: 0.9rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gray); margin-top: 0.5rem; font-weight: 300; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+
+        .login-box {
+            background: linear-gradient(145deg, rgba(10,10,10,0.46), rgba(32,32,32,0.2)); backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,0.14); padding: 2.6rem; width: 90%; max-width: 460px;
+            position: relative; overflow: hidden; z-index: 2; box-shadow: 0 24px 70px rgba(0,0,0,0.38);
+        }
+        .login-box::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(115deg, transparent 0%, transparent 38%, rgba(255,255,255,0.06) 50%, transparent 62%, transparent 100%);
+            transform: translateX(-120%); animation: cardSweep 5s ease-in-out infinite;
+        }
+        .login-box::after { content: ''; position: absolute; inset: 12px; border: 1px solid rgba(255,255,255,0.08); pointer-events: none; }
+        .login-box > * { position: relative; z-index: 1; }
+        .access-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.3rem; color: rgba(255,255,255,0.58); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+        .access-title { font-family: var(--display-font); font-size: clamp(1.9rem, 5vw, 2.7rem); line-height: 1; margin-bottom: 0.8rem; }
+        .access-copy { color: rgba(255,255,255,0.58); font-size: 0.78rem; letter-spacing: 0.12em; line-height: 1.7; text-transform: uppercase; margin-bottom: 2rem; }
+
+        .input-group { margin-bottom: 1.5rem; position: relative; }
+        .input-group label { display: block; font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600; }
+        .input-group input {
+            width: 100%; padding: 1rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2);
+            color: var(--white); font-family: 'Inter', sans-serif; font-size: 1rem; outline: none; transition: all 0.3s ease;
+            border-radius: 0; -webkit-appearance: none; appearance: none;
+        }
+        .input-group input:focus { border-color: var(--white); background: rgba(255,255,255,0.12); box-shadow: 0 0 20px rgba(255,255,255,0.08); }
+        .input-group input::placeholder { color: rgba(255,255,255,0.3); }
+
+        .btn {
+            width: 100%; padding: 1.2rem; background: var(--white); color: var(--black); border: none;
+            font-family: 'Inter', sans-serif; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.2em;
+            text-transform: uppercase; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;
+            border-radius: 0; touch-action: manipulation;
+        }
+        .btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(0,0,0,0.16), transparent); transform: translateX(-110%); transition: transform 0.55s ease; }
+        .btn:hover::before { transform: translateX(110%); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,255,255,0.2); }
+        .login-stamp { margin-top: 1.4rem; color: rgba(255,255,255,0.42); font-size: 0.66rem; font-weight: 800; letter-spacing: 0.22em; text-align: center; text-transform: uppercase; }
+
+        #main-content { display: none; opacity: 0; transition: opacity 1s ease; background: var(--black); min-height: 100vh; }
+        #main-content.visible { display: block; opacity: 1; }
+
+        nav {
+            position: fixed; top: 0; left: 0; width: 100%; padding: 1.5rem 3rem;
+            display: flex; justify-content: space-between; align-items: center; z-index: 50;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.95), transparent); backdrop-filter: blur(10px);
+        }
+        .nav-logo { font-family: var(--display-font); font-size: 1.8rem; color: var(--white); text-decoration: none; }
+        .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+        .nav-links a { color: var(--white); text-decoration: none; font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 600; position: relative; padding-bottom: 0.3rem; }
+        .nav-links a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 1px; background: var(--white); transition: width 0.3s ease; }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-toggle {
+            display: none; width: 44px; height: 44px; border: 1px solid rgba(255,255,255,0.22);
+            background: rgba(0,0,0,0.28); color: var(--white); align-items: center; justify-content: center;
+            cursor: pointer; position: relative; touch-action: manipulation;
+        }
+        .nav-toggle span {
+            position: absolute; width: 18px; height: 1px; background: currentColor;
+            transition: transform 0.25s ease, opacity 0.25s ease;
+        }
+        .nav-toggle span:nth-child(1) { transform: translateY(-6px); }
+        .nav-toggle span:nth-child(3) { transform: translateY(6px); }
+        .nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: rotate(45deg); }
+        .nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+        .nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: rotate(-45deg); }
+
+        .hero { min-height: 100svh; display: flex; align-items: center; justify-content: center; text-align: center; position: relative; background: linear-gradient(to bottom, var(--black), #111); padding: 7rem 1.5rem 4rem; }
+        .hero-content { width: min(100%, 720px); }
+        .hero-content h1 { font-family: var(--display-font); font-size: clamp(3rem, 10vw, 8rem); line-height: 1; margin-bottom: 1rem; animation: fadeInUp 1s ease; }
+        .hero-content p { font-size: 1.1rem; color: var(--gray); max-width: 600px; margin: 0 auto 2rem; line-height: 1.6; animation: fadeInUp 1s ease 0.2s both; }
+        .scroll-indicator { position: absolute; bottom: 3rem; left: 50%; transform: translateX(-50%); animation: bounce 2s infinite; }
+        .scroll-indicator span { display: block; width: 1px; height: 60px; background: linear-gradient(to bottom, var(--white), transparent); margin: 0 auto; }
+
+        .shop { padding: 6rem 3rem; max-width: 1400px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 4rem; }
+        .section-header h2 { font-family: var(--display-font); font-size: 3rem; margin-bottom: 1rem; }
+        .section-header p { color: var(--gray); font-size: 0.9rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; }
+        .product-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); overflow: hidden; position: relative; transition: all 0.4s ease; cursor: pointer; }
+        .product-card::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); transition: left 0.6s ease; z-index: 1; }
+        .product-card:hover::before { left: 100%; }
+        .product-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .product-image { width: 100%; height: 400px; background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .product-image svg { width: 80%; height: 80%; opacity: 0.9; transition: transform 0.4s ease; }
+        .product-card:hover .product-image svg { transform: scale(1.05); }
+        .product-badge { position: absolute; top: 1rem; left: 1rem; background: var(--white); color: var(--black); padding: 0.4rem 0.8rem; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; z-index: 2; }
+        .product-info { padding: 1.5rem; }
+        .product-info h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.3rem; letter-spacing: 0.05em; }
+        .product-info .category { font-size: 0.75rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+        .product-footer { display: flex; justify-content: space-between; align-items: center; }
+        .price { font-size: 1.2rem; font-weight: 800; }
+        .add-to-cart { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: var(--white); padding: 0.6rem 1.2rem; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.3s ease; font-weight: 600; border-radius: 0; touch-action: manipulation; }
+        .add-to-cart:hover { background: var(--white); color: var(--black); }
+
+        .about { padding: 6rem 3rem; background: rgba(255,255,255,0.02); border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .about-content { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        .about-text h2 { font-family: var(--display-font); font-size: 2.5rem; margin-bottom: 1.5rem; }
+        .about-text p { color: var(--gray); line-height: 1.8; margin-bottom: 1rem; }
+        .about-visual { height: 400px; background: linear-gradient(135deg, #111 0%, #0a0a0a 100%); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; position: relative; }
+        .sketch-book { width: 200px; height: 280px; background: var(--black); border: 2px solid rgba(255,255,255,0.2); position: relative; transform: rotate(-5deg); box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 10px 10px 30px rgba(0,0,0,0.8); }
+        .sketch-book::before { content: 'VIVET'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg); font-family: var(--display-font); font-size: 2rem; color: rgba(255,255,255,0.8); white-space: nowrap; }
+
+        footer { padding: 3rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); background: var(--black); }
+        .footer-logo { font-family: var(--display-font); font-size: 2rem; margin-bottom: 1rem; }
+        footer p { color: var(--gray); font-size: 0.8rem; letter-spacing: 0.1em; }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        @keyframes slowSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+        @keyframes cardSweep { 0%, 42% { transform: translateX(-120%); } 70%, 100% { transform: translateX(120%); } }
+        @keyframes logoGhost { 0%, 100% { transform: translate(0, 0); opacity: 0.55; } 50% { transform: translate(0.08em, -0.05em); opacity: 0.25; } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-10px); } 60% { transform: translateX(-50%) translateY(-5px); } }
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 768px) {
+            #login-screen { height: 100dvh; min-height: 100dvh; padding: 1.25rem; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+            .login-video-bg { object-position: center; }
+            .login-marquee { top: 10%; font-size: clamp(3.5rem, 22vw, 7rem); }
+            .login-aura { width: min(620px, 118vw); }
+            .login-orbit { width: min(430px, 92vw); }
+            .logo-container { margin-bottom: 1.25rem; }
+            .logo { font-size: clamp(3.5rem, 17vw, 5rem); letter-spacing: 0.07em; }
+            .logo::after { font-size: 1rem; right: -1.3rem; }
+            .tagline { font-size: 0.72rem; letter-spacing: 0.16em; line-height: 1.6; max-width: 18rem; margin-left: auto; margin-right: auto; }
+            .login-box { width: min(calc(100vw - 2.5rem), 430px); max-width: calc(100vw - 2.5rem); margin-inline: auto; padding: 1.7rem; max-height: calc(100svh - 2.5rem); max-height: calc(100dvh - 2.5rem); overflow-y: auto; }
+            .access-header { align-items: flex-start; flex-direction: column; font-size: 0.6rem; letter-spacing: 0.12em; }
+            .access-copy { font-size: 0.72rem; letter-spacing: 0.08em; margin-bottom: 1.35rem; }
+            .input-group { margin-bottom: 1rem; }
+            .input-group input, .btn, .add-to-cart, .nav-toggle { min-height: 44px; }
+
+            nav { padding: calc(0.9rem + env(safe-area-inset-top)) 1rem 0.9rem; background: rgba(0,0,0,0.82); }
+            .nav-logo { font-size: 1.55rem; }
+            .nav-toggle { display: flex; }
+            .nav-links {
+                position: fixed; top: calc(4.35rem + env(safe-area-inset-top)); left: 1rem; right: 1rem; display: grid; gap: 0;
+                padding: 0.35rem; background: rgba(8,8,8,0.9); border: 1px solid rgba(255,255,255,0.14);
+                backdrop-filter: blur(18px); opacity: 0; visibility: hidden; pointer-events: none;
+                transform: translateY(-8px); transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+                box-shadow: 0 18px 48px rgba(0,0,0,0.45); max-height: calc(100dvh - 6rem); overflow-y: auto;
+            }
+            .nav-links.open { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
+            .nav-links a { display: block; padding: 1rem; font-size: 0.78rem; }
+            .nav-links a::after { display: none; }
+
+            .hero { min-height: 100svh; padding: 6.5rem 1.25rem 4rem; }
+            .hero-content h1 { font-size: clamp(3.8rem, 23vw, 6.5rem); }
+            .hero-content p { font-size: 0.95rem; line-height: 1.7; max-width: 34rem; }
+            .scroll-indicator { bottom: 1.6rem; }
+            .scroll-indicator span { height: 42px; }
+
+            .shop { padding: 4rem 1rem; }
+            .section-header { margin-bottom: 2.4rem; }
+            .section-header h2 { font-size: clamp(2.1rem, 11vw, 3rem); }
+            .products-grid { grid-template-columns: 1fr; gap: 1.1rem; }
+            .product-image { height: clamp(260px, 82vw, 360px); }
+            .product-info { padding: 1.2rem; }
+            .product-footer { gap: 1rem; flex-wrap: wrap; }
+
+            .about { padding: 4rem 1rem; }
+            .about-content { grid-template-columns: 1fr; gap: 2.2rem; }
+            .about-text h2 { font-size: clamp(2rem, 10vw, 2.7rem); }
+            .about-visual { height: min(320px, 78vw); }
+            footer { padding: 2.25rem 1rem; }
+            footer p { line-height: 1.7; }
+        }
+
+        @media (max-width: 430px) {
+            #login-screen { justify-content: flex-start; padding: max(0.9rem, env(safe-area-inset-top)) 0.9rem max(0.9rem, env(safe-area-inset-bottom)); }
+            .login-marquee, .login-aura, .login-orbit { opacity: 0.55; }
+            .logo-container { margin-bottom: 0.9rem; }
+            .logo { font-size: clamp(3rem, 18vw, 3.8rem); }
+            .tagline { font-size: 0.64rem; letter-spacing: 0.11em; max-width: 16rem; }
+            .login-box { width: min(calc(100vw - 1.8rem), 430px); padding: 1.25rem; max-height: calc(100dvh - 1.8rem); }
+            .access-header { gap: 0.5rem; align-items: flex-start; flex-direction: column; }
+            .access-title { font-size: 1.75rem; }
+            .access-copy { line-height: 1.55; }
+            .input-group label, .btn { letter-spacing: 0.14em; }
+            .product-footer { align-items: stretch; flex-direction: column; }
+            .add-to-cart { width: 100%; }
+            .about-text p { font-size: 0.94rem; line-height: 1.7; }
+        }
+
+        @media (max-width: 360px) {
+            .logo { font-size: 2.75rem; }
+            .access-title { font-size: 1.55rem; }
+            .access-copy { font-size: 0.66rem; letter-spacing: 0.06em; }
+            .hero-content h1 { font-size: 3.2rem; }
+            .product-info h3, .price { font-size: 1rem; }
+            .section-header p { font-size: 0.76rem; line-height: 1.6; }
+        }
+
+        @media (max-height: 640px) and (max-width: 768px) {
+            #login-screen { justify-content: flex-start; }
+            .logo-container { animation: none; margin-bottom: 0.75rem; }
+            .logo { font-size: clamp(2.7rem, 14vw, 4rem); }
+            .tagline { font-size: 0.62rem; }
+            .login-box { padding: 1.1rem; }
+            .access-copy, .input-group { margin-bottom: 0.85rem; }
+            .login-stamp { margin-top: 0.9rem; }
+        }
+
+        @media (hover: none) {
+            .product-card:hover, .btn:hover { transform: none; box-shadow: none; }
+            .product-card:hover .product-image svg { transform: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="background-music" loop preload="auto" autoplay>
+        <source src="YTMP3GG_YouTube_Nonstop_Media_QVqS3tB8OtE_009_128k.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Login Screen with EMBEDDED Video Background -->
+    <div id="login-screen">
+        <video class="login-video-bg" autoplay muted loop playsinline webkit-playsinline preload="auto" disablepictureinpicture>
+            <source src="e970899ef2b84133986a0ce69bc8a1d9.mp4" type="video/mp4">
+        </video>
+        <div class="login-overlay"></div>
+        <div class="login-noise"></div>
+        <div class="login-marquee" aria-hidden="true"><span>VIVET VIVET VIVET VIVET VIVET VIVET</span></div>
+        <div class="login-aura" aria-hidden="true"></div>
+        <div class="login-orbit" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+
+        <div class="logo-container">
+            <div class="logo">VIVET</div>
+            <div class="tagline">By Kai Cenat — Live, Don't Just Exist</div>
+        </div>
+
+        <div class="login-box">
+            <div class="access-header">
+                <span>Drop 01</span>
+                <span>Private Preview</span>
+            </div>
+            <div class="access-title">Access The Atelier</div>
+            <div class="access-copy">Live loud. Move sharp. Enter the collection.</div>
+            <div class="input-group">
+                <label>Email / Username</label>
+                <input type="text" placeholder="Enter your email" id="username">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" placeholder="Enter your password" id="password">
+            </div>
+            <button class="btn" onclick="login()">Enter The World</button>
+            <div class="login-stamp">VVT-2026 / Crafted in Italy</div>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <nav>
+            <a href="#" class="nav-logo">VIVET</a>
+            <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-navigation">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="primary-navigation">
+                <li><a href="#shop">Collection</a></li>
+                <li><a href="#about">Manifesto</a></li>
+                <li><a href="#">Lookbook</a></li>
+                <li><a href="#">Account</a></li>
+            </ul>
+        </nav>
+
+        <section class="hero">
+            <div class="hero-content">
+                <h1>VIVET</h1>
+                <p>Born from the idea of truly living — not just existing. Luxury denim and streetwear crafted in Italy, designed for those who move with purpose.</p>
+            </div>
+            <div class="scroll-indicator"><span></span></div>
+        </section>
+
+        <section class="shop" id="shop">
+            <div class="section-header reveal">
+                <h2>The Collection</h2>
+                <p>Handcrafted. Purpose-built. Made to last.</p>
+            </div>
+
+            <div class="products-grid">
+                <div class="product-card reveal">
+                    <div class="product-image">
+                        <div class="product-badge">New</div>
+                        <svg viewBox="0 0 200 240" fill="none"><path d="M60 40 L40 80 L40 220 L160 220 L160 80 L140 40 L120 50 L80 50 Z" fill="#1a1a1a" stroke="white" stroke-width="1.5"/><path d="M60 40 L50 100 L40 220" stroke="white" stroke-width="1" opacity="0.3"/><path d="M140 40 L150 100 L160 220" stroke="white" stroke-width="1" opacity="0.3"/><path d="M80 50 L80 80 L120 80 L120 50" fill="#0a0a0a" stroke="white" stroke-width="1"/><text x="100" y="140" text-anchor="middle" fill="white" font-family="VIVET Original, Permanent Marker" font-size="14" opacity="0.8">VIVET</text><path d="M70 180 L130 180" stroke="white" stroke-width="1" opacity="0.4"/><path d="M70 190 L130 190" stroke="white" stroke-width="1" opacity="0.4"/></svg>
+                    </div>
+                    <div class="product-info">
+                        <h3>Italian Denim Jacket</h3>
+                        <div class="category">Outerwear</div>
+                        <div class="product-footer"><span class="price">$485</span><button class="add-to-cart">Add to Cart</button></div>
+                    </div>
+                </div>
+
+                <div class="product-card reveal">
+                    <div class="product-image">
+                        <svg viewBox="0 0 200 240" fill="none"><path d="M70 30 L65 100 L60 230 L95 230 L100 120 L105 230 L140 230 L135 100 L130 30 Z" fill="#1a1a1a" stroke="white" stroke-width="1.5"/><path d="M70 30 L130 30" stroke="white" stroke-width="2"/><path d="M75 40 L125 40" stroke="white" stroke-width="1" opacity="0.5"/><path d="M65 100 L135 100" stroke="white" stroke-width="1" opacity="0.3"/><text x="100" y="160" text-anchor="middle" fill="white" font-family="VIVET Original, Permanent Marker" font-size="12" opacity="0.7">V</text><path d="M80 200 L90 200" stroke="white" stroke-width="1" opacity="0.4"/><path d="M110 200 L120 200" stroke="white" stroke-width="1" opacity="0.4"/></svg>
+                    </div>
+                    <div class="product-info">
+                        <h3>Raw Selvedge Denim</h3>
+                        <div class="category">Bottoms</div>
+                        <div class="product-footer"><span class="price">$320</span><button class="add-to-cart">Add to Cart</button></div>
+                    </div>
+                </div>
+
+                <div class="product-card reveal">
+                    <div class="product-image">
+                        <div class="product-badge">Sold Out</div>
+                        <svg viewBox="0 0 200 240" fill="none"><path d="M70 50 L50 90 L50 220 L150 220 L150 90 L130 50 L100 40 Z" fill="#1a1a1a" stroke="white" stroke-width="1.5"/><path d="M70 50 L60 100 L50 220" stroke="white" stroke-width="1" opacity="0.3"/><path d="M130 50 L140 100 L150 220" stroke="white" stroke-width="1" opacity="0.3"/><path d="M85 40 L85 70 L115 70 L115 40" fill="#0a0a0a" stroke="white" stroke-width="1"/><path d="M100 40 L100 30" stroke="white" stroke-width="1.5"/><text x="100" y="140" text-anchor="middle" fill="white" font-family="VIVET Original, Permanent Marker" font-size="16" opacity="0.9">VIVET</text><circle cx="100" cy="115" r="25" stroke="white" stroke-width="1" opacity="0.2"/></svg>
+                    </div>
+                    <div class="product-info">
+                        <h3>Heavyweight Hoodie</h3>
+                        <div class="category">Tops</div>
+                        <div class="product-footer"><span class="price">$180</span><button class="add-to-cart">Notify Me</button></div>
+                    </div>
+                </div>
+
+                <div class="product-card reveal">
+                    <div class="product-image">
+                        <svg viewBox="0 0 200 240" fill="none"><path d="M70 50 L50 70 L55 90 L70 80 L70 220 L130 220 L130 80 L145 90 L150 70 L130 50 L100 60 Z" fill="#1a1a1a" stroke="white" stroke-width="1.5"/><path d="M70 50 L50 70 L55 90" stroke="white" stroke-width="1" opacity="0.4"/><path d="M130 50 L150 70 L145 90" stroke="white" stroke-width="1" opacity="0.4"/><text x="100" y="150" text-anchor="middle" fill="white" font-family="VIVET Original, Permanent Marker" font-size="20" opacity="0.8">V</text><path d="M85 180 L115 180" stroke="white" stroke-width="1" opacity="0.3"/></svg>
+                    </div>
+                    <div class="product-info">
+                        <h3>Logo Tee — Black</h3>
+                        <div class="category">Essentials</div>
+                        <div class="product-footer"><span class="price">$85</span><button class="add-to-cart">Add to Cart</button></div>
+                    </div>
+                </div>
+
+                <div class="product-card reveal">
+                    <div class="product-image">
+                        <svg viewBox="0 0 200 240" fill="none"><path d="M65 30 L60 100 L55 230 L90 230 L95 130 L105 230 L145 230 L140 100 L135 30 Z" fill="#1a1a1a" stroke="white" stroke-width="1.5"/><rect x="60" y="110" width="25" height="30" fill="#0a0a0a" stroke="white" stroke-width="1" opacity="0.6"/><rect x="115" y="150" width="25" height="30" fill="#0a0a0a" stroke="white" stroke-width="1" opacity="0.6"/><path d="M65 30 L135 30" stroke="white" stroke-width="2"/><text x="100" y="170" text-anchor="middle" fill="white" font-family="VIVET Original, Permanent Marker" font-size="10" opacity="0.6">VIVET</text></svg>
+                    </div>
+                    <div class="product-info">
+                        <h3>Technical Cargo</h3>
+                        <div class="category">Bottoms</div>
+                        <div class="product-footer"><span class="price">$265</span><button class="add-to-cart">Add to Cart</button></div>
+                    </div>
+                </div>
+
+                <div class="product-card reveal">
+                    <div class="product-image">
+                        <svg viewBox="0 0 200 240" fill="none"><path d="M60 40 L40 60 L45 80 L60 70 L60 210 L140 210 L140 70 L155 80 L160 60 L140 40 L100 55 Z" fill="#1a1a1a" stroke="white" stroke-width="1.5"/><path d="M100 55 L100 210" stroke="white" stroke-width="1" opacity="0.2"/><path d="M60 40 L40 60 L45 80" stroke="white" stroke-width="1" opacity="0.4"/><path d="M140 40 L160 60 L155 80" stroke="white" stroke-width="1" opacity="0.4"/><path d="M70 90 L130 90" stroke="white" stroke-width="1" opacity="0.3"/><text x="100" y="140" text-anchor="middle" fill="white" font-family="VIVET Original, Permanent Marker" font-size="14" opacity="0.8">IT WILL LIVE</text></svg>
+                    </div>
+                    <div class="product-info">
+                        <h3>Work Shirt — "It Will Live"</h3>
+                        <div class="category">Tops</div>
+                        <div class="product-footer"><span class="price">$150</span><button class="add-to-cart">Add to Cart</button></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about" id="about">
+            <div class="about-content">
+                <div class="about-text reveal">
+                    <h2>The Manifesto</h2>
+                    <p>VIVET was born from the idea of truly living — not just existing. Every stitch, every wash, every detail is a projection of growth and the refusal to settle.</p>
+                    <p>We traveled to Italy to learn the art of luxury denim production. Not because it was easy, but because anything worth building demands sacrifice.</p>
+                    <p>This is for the people who move with purpose. Who chase their vision. Who aren't afraid to stand out.</p>
+                    <p style="font-family: var(--display-font); font-size: 1.2rem; margin-top: 2rem; color: var(--white);">We the People. For the People.</p>
+                </div>
+                <div class="about-visual reveal">
+                    <div class="sketch-book"></div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <div class="footer-logo">VIVET</div>
+            <p>© 2026 VIVET by Kai Cenat. All Rights Reserved. Crafted in Italy.</p>
+        </footer>
+    </div>
+
+    <script>
+        const backgroundMusic = document.getElementById('background-music');
+        const loginVideo = document.querySelector('.login-video-bg');
+        let loginVideoObjectUrl = '';
+
+        function prepareBackgroundVideo() {
+            if (!loginVideo) return;
+
+            loginVideo.muted = true;
+            loginVideo.defaultMuted = true;
+            loginVideo.autoplay = true;
+            loginVideo.loop = true;
+            loginVideo.playsInline = true;
+            loginVideo.setAttribute('muted', '');
+            loginVideo.setAttribute('playsinline', '');
+            loginVideo.setAttribute('webkit-playsinline', '');
+            loginVideo.setAttribute('preload', 'auto');
+
+            const source = loginVideo.querySelector('source');
+            if (!source || source.dataset.blobified === 'true' || !source.src.startsWith('data:video/')) return;
+
+            try {
+                const commaIndex = source.src.indexOf(',');
+                const meta = source.src.slice(0, commaIndex);
+                const data = source.src.slice(commaIndex + 1);
+                const mimeMatch = meta.match(/^data:([^;]+)/);
+                const binary = atob(data);
+                const bytes = new Uint8Array(binary.length);
+
+                for (let i = 0; i < binary.length; i += 1) {
+                    bytes[i] = binary.charCodeAt(i);
+                }
+
+                loginVideoObjectUrl = URL.createObjectURL(new Blob([bytes], { type: mimeMatch ? mimeMatch[1] : 'video/mp4' }));
+                source.dataset.blobified = 'true';
+                source.src = loginVideoObjectUrl;
+                loginVideo.src = loginVideoObjectUrl;
+                loginVideo.load();
+            } catch (error) {
+                // Keep the embedded source as a fallback if a browser cannot create a Blob URL.
+            }
+        }
+
+        function startBackgroundVideo() {
+            if (!loginVideo) return;
+            prepareBackgroundVideo();
+
+            try {
+                const playRequest = loginVideo.play();
+                if (playRequest && typeof playRequest.catch === 'function') playRequest.catch(() => {});
+            } catch (error) {}
+        }
+
+        function startBackgroundMusic() {
+            backgroundMusic.muted = false;
+            backgroundMusic.volume = 0.55;
+            backgroundMusic.autoplay = true;
+            backgroundMusic.play().catch(() => {});
+        }
+
+        startBackgroundVideo();
+        startBackgroundMusic();
+        document.addEventListener('DOMContentLoaded', startBackgroundVideo);
+        document.addEventListener('DOMContentLoaded', startBackgroundMusic);
+        window.addEventListener('load', startBackgroundVideo);
+        window.addEventListener('load', startBackgroundMusic);
+        window.addEventListener('pageshow', startBackgroundVideo);
+        window.addEventListener('pageshow', startBackgroundMusic);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) startBackgroundVideo();
+            if (!document.hidden) startBackgroundMusic();
+        });
+
+        let autoplayAttempts = 0;
+        const autoplayRetry = setInterval(() => {
+            autoplayAttempts += 1;
+            startBackgroundMusic();
+            if (autoplayAttempts >= 8 || !backgroundMusic.paused) clearInterval(autoplayRetry);
+        }, 500);
+
+        function login() {
+            startBackgroundVideo();
+            startBackgroundMusic();
+            document.getElementById('login-screen').classList.add('hidden');
+            setTimeout(() => {
+                const mc = document.getElementById('main-content');
+                mc.style.display = 'block';
+                void mc.offsetWidth;
+                mc.classList.add('visible');
+            }, 500);
+        }
+
+        const loginScreen = document.getElementById('login-screen');
+        document.addEventListener('touchstart', startBackgroundVideo, { once: true, passive: true });
+        document.addEventListener('pointerdown', startBackgroundVideo, { once: true });
+        document.addEventListener('pointermove', startBackgroundMusic, { once: true });
+        document.addEventListener('mousemove', startBackgroundMusic, { once: true });
+        loginScreen.addEventListener('touchstart', startBackgroundVideo, { once: true, passive: true });
+        loginScreen.addEventListener('pointerdown', startBackgroundVideo, { once: true });
+        loginScreen.addEventListener('pointermove', startBackgroundMusic, { once: true });
+        loginScreen.addEventListener('mousemove', startBackgroundMusic, { once: true });
+        loginScreen.addEventListener('pointerdown', startBackgroundMusic, { once: true });
+        loginScreen.addEventListener('keydown', startBackgroundMusic, { once: true });
+
+        const navToggle = document.querySelector('.nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        if (navToggle && navLinks) {
+            const setNavigationState = isOpen => {
+                navLinks.classList.toggle('open', isOpen);
+                navToggle.setAttribute('aria-expanded', String(isOpen));
+                navToggle.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
+                document.body.classList.toggle('nav-open', isOpen);
+            };
+
+            const closeNavigation = () => {
+                setNavigationState(false);
+            };
+
+            navToggle.addEventListener('click', () => {
+                setNavigationState(!navLinks.classList.contains('open'));
+            });
+
+            navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', closeNavigation));
+            document.addEventListener('pointerdown', event => {
+                if (!navLinks.classList.contains('open')) return;
+                if (navLinks.contains(event.target) || navToggle.contains(event.target)) return;
+                closeNavigation();
+            });
+            document.addEventListener('keydown', event => {
+                if (event.key === 'Escape') closeNavigation();
+            });
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) closeNavigation();
+            });
+        }
+
+        const obs = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); }); }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+        document.querySelectorAll('.add-to-cart').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const orig = this.textContent;
+                this.textContent = 'Added ✓'; this.style.background = 'var(--white)'; this.style.color = 'var(--black)';
+                setTimeout(() => { this.textContent = orig; this.style.background = ''; this.style.color = ''; }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>
